@@ -2,24 +2,24 @@
 vars:
   backup_lock_created: '/tmp/replica_lock_created'
 
-- name: MySQL Physical Replica Setup
+- name: MySQL Physical Master Setup
   hosts: all
   tasks:
     - stat:
        path: "{{ backup_lock_created }}"
       register: executing
 
-    - name: Creating MySQL Physical Replica execution file
+    - name: Creating MySQL Physical Master execution file
       file:
         path: "{{ backup_lock_created }}"
         state: touch
       when: executing.stat.islnk is not defined
 
-     - name: Transfering MySQL Physical Replica script
-       copy: src=mysql_physical_replica/replica_new_db_node.sh dest=/tmp mode=0777
+     - name: Transfering MySQL Physical Master script
+       copy: src=mysql_physical_replica/master_new_db_node.sh dest=/tmp mode=0777
 
-     - name: Executing MySQL Physical Replica script
-       command: "sh /tmp/replica_new_db_node.sh {{ replica_datadir }} {{ replica_port }} {{ master_server_address }} {{ master_server_id }} {{ config_replication }}"
+     - name: Executing MySQL Physical Master script
+       command: "sh /tmp/master_new_db_node.sh {{ replica_address }} {{ replica_port }}"
        register: cmd_physical
        async: 86400
        poll: 0
@@ -35,8 +35,8 @@ vars:
           timeout: 86400
        when: executing.stat.islnk is not defined
 
-     - name: Ansible delete - MySQL Physical Replica script
+     - name: Ansible delete - MySQL Physical Master script
        file:
-         path: /tmp/replica_new_db_node.sh
+         path: /tmp/master_new_db_node.sh
          state: absent
        when: executing.stat.islnk is not defined
