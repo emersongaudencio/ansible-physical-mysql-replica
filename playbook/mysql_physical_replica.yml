@@ -1,19 +1,17 @@
 ---
-vars:
-  backup_lock_created: '/tmp/replica_lock_created'
-
 - name: MySQL Physical Replica Setup
   hosts: all
   tasks:
-    - stat:
-       path: "{{ backup_lock_created }}"
-      register: executing
+  - block:
+     - stat:
+        path: "{{ lock_created }}"
+       register: executing
 
-    - name: Creating MySQL Physical Replica execution file
-      file:
-        path: "{{ backup_lock_created }}"
-        state: touch
-      when: executing.stat.islnk is not defined
+     - name: Creating MySQL Physical Replica execution file
+       file:
+         path: "{{ lock_created }}"
+         state: touch
+       when: executing.stat.islnk is not defined
 
      - name: Transfering MySQL Physical Replica script
        copy: src=mysql_physical_replica/replica_new_db_node.sh dest=/tmp mode=0777
@@ -21,21 +19,19 @@ vars:
      - name: Executing MySQL Physical Replica script
        command: "sh /tmp/replica_new_db_node.sh {{ replica_datadir }} {{ replica_port }} {{ master_server_address }} {{ master_server_id }} {{ config_replication }}"
        register: cmd_physical
-       async: 86400
-       poll: 0
        when: executing.stat.islnk is not defined
      - debug: msg="{{ cmd_physical.stdout_lines|replace('\\t',' ') }}"
      - debug: msg="{{ cmd_physical.stderr_lines|replace('\\t',' ') }}"
 
      - name: Wait until the lock file is removed
        wait_for:
-          path: "{{ backup_lock_created }}"
+          path: "{{ lock_created }}"
           state: absent
           delay: 60
           timeout: 86400
        when: executing.stat.islnk is not defined
 
-     - name: Ansible delete - MySQL Physical Replica script
+     - name: Removing - MySQL Physical Replica script
        file:
          path: /tmp/replica_new_db_node.sh
          state: absent
