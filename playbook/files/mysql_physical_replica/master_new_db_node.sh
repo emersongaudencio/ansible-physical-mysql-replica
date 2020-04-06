@@ -56,3 +56,6 @@ then
 echo "$verify_mysql is installed!"
 xtrabackup --backup  --target-dir=./ --parallel=4 --compress --compress-threads=4 --stream=xbstream | nc $ip_address_new_node $port
 fi
+
+### REMOVE TMP FILES on /tmp #####
+rm -rf /tmp/*
