@@ -58,4 +58,4 @@ xtrabackup --backup  --target-dir=./ --parallel=4 --compress --compress-threads=
 fi
 
 ### REMOVE TMP FILES on /tmp #####
-rm -rf /tmp/*
+rm -rf /tmp/lock_file

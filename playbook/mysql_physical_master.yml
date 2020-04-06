@@ -33,6 +33,6 @@
 
      - name: Removing - MySQL Physical Replica script - Master Server
        file:
-         path: /tmp/replica_new_db_node.sh
+         path: /tmp/master_new_db_node.sh
          state: absent
        when: executing.stat.islnk is not defined
