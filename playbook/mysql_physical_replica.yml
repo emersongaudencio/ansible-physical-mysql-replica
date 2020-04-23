@@ -1,5 +1,6 @@
 ---
 - name: MySQL Physical Replica Setup
+  gather_facts: false
   hosts: all
   tasks:
   - block:

@@ -1,5 +1,6 @@
 ---
 - name: MySQL Physical Replica Setup - Master Server
+  gather_facts: false
   hosts: all
   tasks:
   - block:
