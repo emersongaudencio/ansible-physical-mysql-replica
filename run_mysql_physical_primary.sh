@@ -30,4 +30,4 @@ fi
 ansible -i $SCRIPT_PATH/hosts -m ping $VAR_HOST -v
 
 ### Run MySQL Physical master ####
-ansible-playbook -v -i $SCRIPT_PATH/hosts -e "{replica_address: '$VAR_REPLICA_ADDRESS', replica_port: '$VAR_REPLICA_PORT', lock_created: $VAR_LOCK_FILE}" $SCRIPT_PATH/playbook/mysql_physical_master.yml -l $VAR_HOST
+ansible-playbook -v -i $SCRIPT_PATH/hosts -e "{replica_address: '$VAR_REPLICA_ADDRESS', replica_port: '$VAR_REPLICA_PORT', lock_created: $VAR_LOCK_FILE}" $SCRIPT_PATH/playbook/mysql_physical_primary.yml -l $VAR_HOST

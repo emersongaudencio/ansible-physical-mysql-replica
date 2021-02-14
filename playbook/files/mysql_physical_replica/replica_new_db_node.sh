@@ -99,37 +99,38 @@ HASH_REPLICATION_USER_PWD=`md5sum  /tmp/$RD_REPLICATION_USER_PWD | awk '{print $
 
 ### users pwd ##
 REPLICATION_USER_PWD=$HASH_REPLICATION_USER_PWD
-
-### generate root passwd #####
-if [ "$MYSQL_VERSION" == "80" ]; then
-   passwd="$SERVERID-my80"
- elif [[ "$MYSQL_VERSION" == "57" ]]; then
-   passwd="$SERVERID-my57"
- elif [[ "$MYSQL_VERSION" == "56" ]]; then
-   passwd="$SERVERID-my56"
- elif [[ "$MYSQL_VERSION" == "55" ]]; then
-   passwd="$SERVERID-my55"
- else
-   passwd="root-$SERVERID"
-fi
-touch /tmp/$passwd
-echo $passwd > /tmp/$passwd
-hash=`md5sum  /tmp/$passwd | awk '{print $1}' | sed -e 's/^[[:space:]]*//' | tr -d '/"/'`
 ##################################################################################################################################
 
 ### generate it the user file on root account linux #####
 echo "[client]
-user            = root
-password        = $hash
-" > /root/.my.cnf_master
+user            = $REPLICATION_USER_NAME
+password        = $REPLICATION_USER_PWD
+" > /root/.my.cnf_replica
 
 if [ "$CONFIG_REPLICATION" == "1" ]; then
   ### configure and setup replication streaming between master and replica ####
   BINLOG_FILE=$(cat ${datadir}/xtrabackup_binlog_info | awk '{print $1}')
   BINLOG_POS=$(cat ${datadir}/xtrabackup_binlog_info | awk '{print $2}')
   ### setting up replicatin streaming
-  mysql --defaults-file=/root/.my.cnf_master --force -e "CHANGE MASTER TO MASTER_HOST = '$MASTER_SERVER_ADDRESS' , MASTER_USER = '$REPLICATION_USER_NAME' , MASTER_PASSWORD = '$REPLICATION_USER_PWD', MASTER_LOG_FILE='$BINLOG_FILE', MASTER_LOG_POS=$BINLOG_POS;";
-  mysql --defaults-file=/root/.my.cnf_master --force -e "START SLAVE;";
+  mysql --defaults-file=/root/.my.cnf_replica --force -e "CHANGE MASTER TO MASTER_HOST = '$MASTER_SERVER_ADDRESS' , MASTER_USER = '$REPLICATION_USER_NAME' , MASTER_PASSWORD = '$REPLICATION_USER_PWD', MASTER_LOG_FILE='$BINLOG_FILE', MASTER_LOG_POS=$BINLOG_POS; START SLAVE; SHOW SLAVE STATUS\G";
+fi
+
+if [ "$CONFIG_REPLICATION" == "2" ]; then
+  ### configure and setup replication streaming between master and replica ####
+  BINLOG_FILE=$(cat ${datadir}/xtrabackup_binlog_info | awk '{print $1}')
+  BINLOG_POS=$(cat ${datadir}/xtrabackup_binlog_info | awk '{print $2}')
+  BINLOG_GTID=$()
+  ### setting up replicatin streaming
+  mysql --defaults-file=/root/.my.cnf_replica --force -e "RESET MASTER; SET @@GLOBAL.GTID_PURGED='$BINLOG_GTID'; CHANGE MASTER TO master_host='$MASTER_SERVER_ADDRESS', master_port=3306, master_user='$REPLICATION_USER_NAME', master_password = '$REPLICATION_USER_PWD', MASTER_AUTO_POSITION=1; START SLAVE; SHOW SLAVE STATUS\G";
+fi
+
+if [ "$CONFIG_REPLICATION" == "3" ]; then
+  ### configure and setup replication streaming between master and replica ####
+  BINLOG_FILE=$(cat ${datadir}/xtrabackup_binlog_info | awk '{print $1}')
+  BINLOG_POS=$(cat ${datadir}/xtrabackup_binlog_info | awk '{print $2}')
+  BINLOG_GTID=$()
+  ### setting up replicatin streaming
+  mysql --defaults-file=/root/.my.cnf_replica --force -e "SET GLOBAL gtid_slave_pos ='$BINLOG_GTID'; CHANGE MASTER TO MASTER_HOST='$MASTER_SERVER_ADDRESS', master_port=3306, master_user='$REPLICATION_USER_NAME', master_password = '$REPLICATION_USER_PWD', master_use_gtid=slave_pos; START SLAVE; SHOW SLAVE STATUS\G";
 fi
 
 ### REMOVE TMP FILES on /tmp #####

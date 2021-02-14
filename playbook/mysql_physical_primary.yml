@@ -1,5 +1,5 @@
 ---
-- name: MySQL Physical Replica Setup - Master Server
+- name: MySQL Physical Replica Setup - Primary Server
   gather_facts: false
   hosts: all
   tasks:
@@ -14,11 +14,11 @@
          state: touch
        when: executing.stat.islnk is not defined
 
-     - name: Transfering MySQL Physical Replica script - Master Server
-       copy: src=mysql_physical_replica/master_new_db_node.sh dest=/tmp mode=0777
+     - name: Transfering MySQL Physical Replica script - Primary Server
+       copy: src=mysql_physical_replica/primary_new_db_node.sh dest=/tmp mode=0777
 
-     - name: Executing MySQL Physical Replica script - Master Server
-       command: "sh /tmp/master_new_db_node.sh {{ replica_address }} {{ replica_port }}"
+     - name: Executing MySQL Physical Replica script - Primary Server
+       command: "sh /tmp/primary_new_db_node.sh {{ replica_address }} {{ replica_port }}"
        register: cmd_physical
        when: executing.stat.islnk is not defined
      - debug: msg="{{ cmd_physical.stdout_lines|replace('\\t',' ') }}"
@@ -32,7 +32,7 @@
           timeout: 86400
        when: executing.stat.islnk is not defined
 
-     - name: Removing - MySQL Physical Replica script - Master Server
+     - name: Removing - MySQL Physical Replica script - Primary Server
        file:
          path: /tmp/master_new_db_node.sh
          state: absent
