@@ -31,7 +31,11 @@ mariabackup --backup  --target-dir=./ --parallel=4 --compress --compress-threads
 elif [[ $verify_mysql == "MariaDB-server-10.4"* ]]
 then
 echo "$verify_mysql is installed!"
-mariabackup --backup  --target-dir=./ --parallel=4 --compress --compress-threads=4 --stream=xbstream | nc $ip_address_new_node $port
+mariabackup --backup  --target-dir=./ --parallel=4 --compress --compress-threads=4 --stream=mbstream | nc $ip_address_new_node $port
+elif [[ $verify_mysql == "MariaDB-server-10.5"* ]]
+then
+echo "$verify_mysql is installed!"
+mariabackup --backup  --target-dir=./ --parallel=4 --compress --compress-threads=4 --stream=mbstream | nc $ip_address_new_node $port
 fi
 
 if [[ $verify_mysql == "" ]]
